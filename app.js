@@ -36,6 +36,7 @@ async function buscarAnime() {
     }
 }
 
+// Dibujar resultados de búsqueda pasando el tipo (ANIME o MANGA)
 function mostrarResultados(medias) {
     const contenedor = document.getElementById('searchResults');
     contenedor.innerHTML = '<h3>Resultados (Haz clic en "+" para agregar)</h3>';
@@ -46,7 +47,7 @@ function mostrarResultados(medias) {
         const cantidad = esAnime ? media.episodes : media.chapters;
         const sufijo = esAnime ? 'eps' : 'caps';
         
-        const btnAdd = `<button onclick="agregarAnime('${media.id}', '${media.title.romaji.replace(/'/g, "\\'")}', '${media.coverImage.large}', ${cantidad || 0})">+</button>`;
+        const btnAdd = `<button onclick="agregarAnime('${media.id}', '${media.title.romaji.replace(/'/g, "\\'")}', '${media.coverImage.large}', ${cantidad || 0}, '${media.type}')">+</button>`;
         
         contenedor.innerHTML += `
             <div class="anime-card">
@@ -60,10 +61,18 @@ function mostrarResultados(medias) {
     });
 }
 
-// Agregar a localStorage
-function agregarAnime(id, titulo, imagen, episodios) {
+// Guardar en localStorage incluyendo la propiedad 'tipo'
+function agregarAnime(id, titulo, imagen, episodios, tipo) {
     if (!miLista.some(a => a.id === id)) {
-        miLista.push({ id, titulo, imagen, episodios, estado: 'Pendiente' });
+        miLista.push({ 
+            id, 
+            titulo, 
+            imagen, 
+            episodios, 
+            tipo: tipo || 'ANIME', 
+            estado: 'Pendiente', 
+            episodioActual: 0 
+        });
         localStorage.setItem('animeList', JSON.stringify(miLista));
         renderizarMiLista();
         document.getElementById('searchResults').classList.add('hidden');
@@ -73,27 +82,43 @@ function agregarAnime(id, titulo, imagen, episodios) {
     }
 }
 
-// Dibujar mi lista guardada con filtros
+// Renderizar la lista filtrando por Tipo, Estado y Ordenando A-Z
 function renderizarMiLista() {
     const contenedor = document.getElementById('myList');
+    if (!contenedor) return;
     contenedor.innerHTML = '';
     
-    const filtroElement = document.getElementById('filtroEstado');
-    const filtro = filtroElement ? filtroElement.value : 'Todos';
+    const filtroTipo = document.getElementById('filtroTipo')?.value || 'Todos';
+    const filtroEstado = document.getElementById('filtroEstado')?.value || 'Todos';
+    const filtroOrden = document.getElementById('filtroOrden')?.value || 'original';
 
-    miLista.forEach(anime => {
-        if (filtro !== 'Todos' && anime.estado !== filtro) return;
+    // 1. Filtrar copia de la lista
+    let listaFiltrada = miLista.filter(anime => {
+        const coincideTipo = (filtroTipo === 'Todos') || ((anime.tipo || 'ANIME') === filtroTipo);
+        const coincideEstado = (filtroEstado === 'Todos') || ((anime.estado || 'Pendiente') === filtroEstado);
+        return coincideTipo && coincideEstado;
+    });
 
+    // 2. Ordenar
+    if (filtroOrden === 'az') {
+        listaFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    } else if (filtroOrden === 'za') {
+        listaFiltrada.sort((a, b) => b.titulo.localeCompare(a.titulo));
+    }
+
+    // 3. Renderizar elementos filtrados
+    listaFiltrada.forEach(anime => {
         const estadoActual = anime.estado || 'Pendiente';
         const episodioActual = anime.episodioActual || 0;
         const totalEpisodios = anime.episodios || '?';
+        const esAnime = (anime.tipo || 'ANIME') === 'ANIME';
+        const etiquetaProgreso = esAnime ? 'Cap' : 'Tom/Cap';
 
-        // Genera el input numérico solo si está en "Viendo"
         let contadorHTML = '';
         if (estadoActual === 'Viendo') {
             contadorHTML = `
                 <div class="episodio-tracker">
-                    <span>Cap:</span>
+                    <span>${etiquetaProgreso}:</span>
                     <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', -1)">-</button>
                     <input type="number" min="0" max="${anime.episodios || 9999}" value="${episodioActual}" onchange="actualizarEpisodio('${anime.id}', this.value)">
                     <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', 1)">+</button>

@@ -31,12 +31,24 @@
 
         <div class="list-header">
             <h2>Mi Lista Guardada</h2>
-            <select id="filtroEstado" onchange="renderizarMiLista()">
-                <option value="Todos">Todos</option>
-                <option value="Viendo">Viendo</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Terminado">Terminado</option>
-            </select>
+            <div class="filters">
+                <select id="filtroTipo" onchange="renderizarMiLista()">
+                    <option value="Todos">Todos los tipos</option>
+                    <option value="ANIME">Anime</option>
+                    <option value="MANGA">Manga / Manhwa</option>
+                </select>
+                <select id="filtroEstado" onchange="renderizarMiLista()">
+                    <option value="Todos">Todos los estados</option>
+                    <option value="Viendo">Viendo</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Terminado">Terminado</option>
+                </select>
+                <select id="filtroOrden" onchange="renderizarMiLista()">
+                    <option value="original">Orden de agregado</option>
+                    <option value="az">Nombre (A - Z)</option>
+                    <option value="za">Nombre (Z - A)</option>
+                </select>
+            </div>
         </div>
         <section id="myList" class="grid-container"></section>
     </main>

@@ -153,3 +153,9 @@ select {
     -webkit-appearance: none;
     margin: 0;
 }
+
+.filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
