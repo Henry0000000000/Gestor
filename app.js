@@ -5,28 +5,28 @@ renderizarMiLista();
 // Búsqueda en AniList (GraphQL)
 async function buscarAnime() {
     const query = `
-    query ($search: String) {
+    query ($search: String, $type: MediaType) {
         Page(page: 1, perPage: 6) {
-            media(search: $search, type: ANIME) {
+            media(search: $search, type: $type) {
                 id
+                type
                 title { romaji }
                 coverImage { large }
                 episodes
+                chapters
             }
         }
     }`;
 
     const searchInput = document.getElementById('searchInput').value;
+    const searchType = document.getElementById('searchType').value;
     if (!searchInput) return;
 
     try {
         const response = await fetch('https://graphql.anilist.co', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ query, variables: { search: searchInput } })
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ query, variables: { search: searchInput, type: searchType } })
         });
 
         const data = await response.json();
@@ -36,15 +36,27 @@ async function buscarAnime() {
     }
 }
 
-// Dibujar resultados de búsqueda
-function mostrarResultados(animes) {
+function mostrarResultados(medias) {
     const contenedor = document.getElementById('searchResults');
     contenedor.innerHTML = '<h3>Resultados (Haz clic en "+" para agregar)</h3>';
     contenedor.classList.remove('hidden');
 
-    animes.forEach(anime => {
-        const btnAdd = `<button onclick="agregarAnime('${anime.id}', '${anime.title.romaji.replace(/'/g, "\\'")}', '${anime.coverImage.large}', ${anime.episodes || 0})">+</button>`;
-        contenedor.innerHTML += crearTarjeta(anime, btnAdd);
+    medias.forEach(media => {
+        const esAnime = media.type === 'ANIME';
+        const cantidad = esAnime ? media.episodes : media.chapters;
+        const sufijo = esAnime ? 'eps' : 'caps';
+        
+        const btnAdd = `<button onclick="agregarAnime('${media.id}', '${media.title.romaji.replace(/'/g, "\\'")}', '${media.coverImage.large}', ${cantidad || 0})">+</button>`;
+        
+        contenedor.innerHTML += `
+            <div class="anime-card">
+                <img src="${media.coverImage.large}" alt="${media.title.romaji}" loading="lazy">
+                <div class="anime-info">
+                    <div class="anime-title">${media.title.romaji} <br><small>(${cantidad || '?'} ${sufijo})</small></div>
+                    ${btnAdd}
+                </div>
+            </div>
+        `;
     });
 }
 
@@ -66,16 +78,29 @@ function renderizarMiLista() {
     const contenedor = document.getElementById('myList');
     contenedor.innerHTML = '';
     
-    // Obtener el filtro actual (si no existe el elemento aún, asume 'Todos')
     const filtroElement = document.getElementById('filtroEstado');
     const filtro = filtroElement ? filtroElement.value : 'Todos';
 
     miLista.forEach(anime => {
-        // Si el filtro no es "Todos" y no coincide con el estado, lo saltamos
         if (filtro !== 'Todos' && anime.estado !== filtro) return;
 
-        // Si es un anime antiguo que no tenía estado, le ponemos Pendiente por defecto
         const estadoActual = anime.estado || 'Pendiente';
+        const episodioActual = anime.episodioActual || 0;
+        const totalEpisodios = anime.episodios || '?';
+
+        // Genera el input numérico solo si está en "Viendo"
+        let contadorHTML = '';
+        if (estadoActual === 'Viendo') {
+            contadorHTML = `
+                <div class="episodio-tracker">
+                    <span>Cap:</span>
+                    <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', -1)">-</button>
+                    <input type="number" min="0" max="${anime.episodios || 9999}" value="${episodioActual}" onchange="actualizarEpisodio('${anime.id}', this.value)">
+                    <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', 1)">+</button>
+                    <span>/ ${totalEpisodios}</span>
+                </div>
+            `;
+        }
 
         const accionesHTML = `
             <div class="anime-actions">
@@ -84,6 +109,7 @@ function renderizarMiLista() {
                     <option value="Viendo" ${estadoActual === 'Viendo' ? 'selected' : ''}>Viendo</option>
                     <option value="Terminado" ${estadoActual === 'Terminado' ? 'selected' : ''}>Terminado</option>
                 </select>
+                ${contadorHTML}
                 <button style="background: #dc2626;" onclick="eliminarAnime('${anime.id}')">Eliminar</button>
             </div>
         `;
@@ -94,6 +120,14 @@ function renderizarMiLista() {
             episodes: anime.episodios
         }, accionesHTML);
     });
+}
+
+function actualizarEpisodio(id, cap) {
+    const indice = miLista.findIndex(a => a.id === id);
+    if (indice !== -1) {
+        miLista[indice].episodioActual = parseInt(cap) || 0;
+        localStorage.setItem('animeList', JSON.stringify(miLista));
+    }
 }
 
 function cambiarEstado(id, nuevoEstado) {
@@ -157,4 +191,22 @@ function importarDatos(event) {
         }
     };
     reader.readAsText(file);
+}
+
+// Sumar o restar un episodio desde los botones
+function cambiarEpisodio(id, incremento) {
+    const indice = miLista.findIndex(a => a.id === id);
+    if (indice !== -1) {
+        let actual = miLista[indice].episodioActual || 0;
+        let nuevo = actual + incremento;
+        
+        if (nuevo < 0) nuevo = 0; // No bajar de cero
+        
+        const maximo = miLista[indice].episodios;
+        if (maximo && nuevo > maximo) nuevo = maximo; // No pasar del límite si se conoce
+        
+        miLista[indice].episodioActual = nuevo;
+        localStorage.setItem('animeList', JSON.stringify(miLista));
+        renderizarMiLista();
+    }
 }

@@ -19,7 +19,11 @@
 
     <main>
         <section class="search-section">
-            <input type="text" id="searchInput" placeholder="Buscar anime en AniList...">
+            <select id="searchType">
+                <option value="ANIME">Anime</option>
+                <option value="MANGA">Manga / Manhwa</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Buscar título...">
             <button onclick="buscarAnime()">Buscar</button>
         </section>
 

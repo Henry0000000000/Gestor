@@ -113,3 +113,43 @@ select {
     gap: 8px;
     margin-top: 10px;
 }
+
+.episodio-tracker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.episodio-tracker input {
+    width: 50px;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #333;
+    background: var(--bg-color);
+    color: white;
+    text-align: center;
+}
+
+.btn-ep {
+    background-color: #4b5563;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-ep:hover {
+    background-color: #6b7280;
+}
+
+/* Ocultar las flechas del input numérico */
+.episodio-tracker input::-webkit-outer-spin-button,
+.episodio-tracker input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
