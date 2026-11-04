@@ -25,8 +25,15 @@
 
         <section id="searchResults" class="grid-container hidden"></section>
 
-        <h2>Mi Lista Guardada</h2>
-        <section id="myList" class="grid-container"></section>
+        <div class="list-header">
+            <h2>Mi Lista Guardada</h2>
+            <select id="filtroEstado" onchange="renderizarMiLista()">
+                <option value="Todos">Todos</option>
+                <option value="Viendo">Viendo</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Terminado">Terminado</option>
+            </select>
+        </div>
     </main>
 
     <script src="app.js"></script>

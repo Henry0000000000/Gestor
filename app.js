@@ -61,18 +61,48 @@ function agregarAnime(id, titulo, imagen, episodios) {
     }
 }
 
-// Dibujar mi lista guardada
+// Dibujar mi lista guardada con filtros
 function renderizarMiLista() {
     const contenedor = document.getElementById('myList');
     contenedor.innerHTML = '';
+    
+    // Obtener el filtro actual (si no existe el elemento aún, asume 'Todos')
+    const filtroElement = document.getElementById('filtroEstado');
+    const filtro = filtroElement ? filtroElement.value : 'Todos';
+
     miLista.forEach(anime => {
-        const btnEliminar = `<button style="background: #dc2626;" onclick="eliminarAnime('${anime.id}')">Eliminar</button>`;
+        // Si el filtro no es "Todos" y no coincide con el estado, lo saltamos
+        if (filtro !== 'Todos' && anime.estado !== filtro) return;
+
+        // Si es un anime antiguo que no tenía estado, le ponemos Pendiente por defecto
+        const estadoActual = anime.estado || 'Pendiente';
+
+        const accionesHTML = `
+            <div class="anime-actions">
+                <select onchange="cambiarEstado('${anime.id}', this.value)">
+                    <option value="Pendiente" ${estadoActual === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                    <option value="Viendo" ${estadoActual === 'Viendo' ? 'selected' : ''}>Viendo</option>
+                    <option value="Terminado" ${estadoActual === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                </select>
+                <button style="background: #dc2626;" onclick="eliminarAnime('${anime.id}')">Eliminar</button>
+            </div>
+        `;
+        
         contenedor.innerHTML += crearTarjeta({
             title: { romaji: anime.titulo },
             coverImage: { large: anime.imagen },
             episodes: anime.episodios
-        }, btnEliminar);
+        }, accionesHTML);
     });
+}
+
+function cambiarEstado(id, nuevoEstado) {
+    const indice = miLista.findIndex(a => a.id === id);
+    if (indice !== -1) {
+        miLista[indice].estado = nuevoEstado;
+        localStorage.setItem('animeList', JSON.stringify(miLista));
+        renderizarMiLista();
+    }
 }
 
 // Eliminar de localStorage
