@@ -9,52 +9,53 @@
 </head>
 <body>
     <header>
-        <h1>Mi Gestor de Anime</h1>
-        <div class="actions">
-            <button onclick="exportarDatos()">Exportar JSON</button>
-            <input type="file" id="importFile" accept=".json" onchange="importarDatos(event)" style="display: none;">
-            <button onclick="document.getElementById('importFile').click()">Importar JSON</button>
+        <div class="header-top">
+            <h1>Mi Gestor</h1>
+            <div class="actions">
+                <button onclick="exportarDatos()">Exportar JSON</button>
+                <input type="file" id="importFile" accept=".json" onchange="importarDatos(event)" style="display: none;">
+                <button onclick="document.getElementById('importFile').click()">Importar JSON</button>
+            </div>
         </div>
-    </header>
 
-    <main>
-        <section class="search-section">
-            <select id="searchType">
-                <option value="ANIME">Anime</option>
-                <option value="MANGA">Manga / Manhwa</option>
-            </select>
-            <input type="text" id="searchInput" placeholder="Buscar título...">
-            <button onclick="buscarAnime()">Buscar</button>
-        </section>
-
-        <section id="searchResults" class="grid-container hidden"></section>
-
-        <div class="list-header">
-            <h2>Mi Lista Guardada</h2>
-            <div class="filters">
-                <select id="filtroTipo" onchange="renderizarMiLista()">
-                    <option value="Todos">Todos los tipos</option>
-                    <option value="ANIME">Anime</option>
-                    <option value="MANGA">Manga / Manhwa</option>
-                </select>
-                <select id="filtroEstado" onchange="renderizarMiLista()">
-                    <option value="Todos">Todos los estados</option>
-                    <option value="Viendo">Viendo</option>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Terminado">Terminado</option>
-                </select>
+        <!-- Búsqueda y Orden alineados a la derecha -->
+        <div class="top-controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar título...">
+                <button onclick="buscarAnime()">Buscar</button>
+            </div>
+            <div class="sort-box">
                 <select id="filtroOrden" onchange="renderizarMiLista()">
-                    <option value="original">Orden de agregado</option>
+                    <option value="original">Orden</option>
                     <option value="az">Nombre (A - Z)</option>
                     <option value="za">Nombre (Z - A)</option>
                 </select>
             </div>
         </div>
+
+        <!-- Pestañas principales (Anime / Mangas/Manhuas) -->
+        <div class="tab-container">
+            <button id="tabAnime" class="tab-btn active" onclick="cambiarTab('ANIME')">anime</button>
+            <button id="tabManga" class="tab-btn" onclick="cambiarTab('MANGA')">mangas/manhuas</button>
+        </div>
+
+        <!-- Filtro de Estado alineado a la izquierda -->
+        <div class="status-box">
+            <select id="filtroEstado" onchange="renderizarMiLista()">
+                <option value="Todos">estado: Todos</option>
+                <option value="Viendo">Viendo</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Terminado">Terminado</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <section id="searchResults" class="grid-container hidden"></section>
         <section id="myList" class="grid-container"></section>
     </main>
 
     <script src="app.js"></script>
-
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -62,6 +63,5 @@
                 .catch(err => console.log('Error al registrar Service Worker:', err));
         }
     </script>
-
 </body>
 </html>

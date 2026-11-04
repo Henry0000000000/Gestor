@@ -10,23 +10,115 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
-    padding: 20px;
+    padding: 15px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-header {
+/* Encabezado */
+.header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.header-top h1 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.actions button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Zona superior derecha: Buscar y Orden */
+.top-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.search-box {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    max-width: 280px;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background-color: var(--card-bg);
+    color: white;
+}
+
+.sort-box select {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: var(--card-bg);
+    color: white;
+    border: 1px solid #444;
+    font-size: 0.85rem;
+}
+
+/* Pestañas Anime / Mangas */
+.tab-container {
+    display: flex;
+    border: 1.5px solid #444;
+    border-radius: 25px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 5px;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-align: center;
+}
+
+.tab-btn.active {
+    background-color: var(--accent);
+    color: white;
+}
+
+/* Filtro de Estado (Izquierda) */
+.status-box {
+    display: flex;
+    justify-content: flex-start;
     margin-bottom: 20px;
 }
 
+.status-box select {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background-color: var(--card-bg);
+    color: white;
+    border: 1px solid #444;
+    font-size: 0.9rem;
+}
+
+/* Controles generales */
 button {
     background-color: var(--accent);
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
+    padding: 8px 14px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
 }
@@ -35,24 +127,10 @@ button:hover {
     background-color: #2563eb;
 }
 
-.search-section {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-input[type="text"] {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    background-color: var(--card-bg);
-    color: white;
-}
-
+/* Grid de tarjetas */
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 15px;
     margin-bottom: 30px;
 }
@@ -66,16 +144,15 @@ input[type="text"] {
     flex-direction: column;
 }
 
-/* El recuadro gris se muestra si no hay internet o mientras carga la imagen */
 .anime-card img {
     width: 100%;
-    height: 220px;
+    height: 190px;
     object-fit: cover;
-    background-color: #333; 
+    background-color: #333;
 }
 
 .anime-info {
-    padding: 10px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -83,49 +160,36 @@ input[type="text"] {
 }
 
 .anime-title {
-    font-size: 0.9em;
-    margin-bottom: 10px;
-}
-
-.hidden {
-    display: none;
-}
-
-.list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-select {
-    padding: 8px;
-    border-radius: 5px;
-    background-color: var(--card-bg);
-    color: white;
-    border: 1px solid #333;
-    cursor: pointer;
+    font-size: 0.85em;
+    margin-bottom: 8px;
 }
 
 .anime-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 6px;
+}
+
+.anime-actions select {
+    padding: 5px;
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: white;
+    border: 1px solid #333;
+    font-size: 0.8rem;
 }
 
 .episodio-tracker {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    margin-top: 5px;
-    font-size: 0.9em;
+    gap: 4px;
+    font-size: 0.8em;
 }
 
 .episodio-tracker input {
-    width: 50px;
-    padding: 5px;
+    width: 40px;
+    padding: 4px;
     border-radius: 3px;
     border: 1px solid #333;
     background: var(--bg-color);
@@ -133,29 +197,22 @@ select {
     text-align: center;
 }
 
-.btn-ep {
-    background-color: #4b5563;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.btn-ep:hover {
-    background-color: #6b7280;
-}
-
-/* Ocultar las flechas del input numérico */
 .episodio-tracker input::-webkit-outer-spin-button,
 .episodio-tracker input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-.filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+.btn-ep {
+    background-color: #4b5563;
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
 }

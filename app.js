@@ -1,8 +1,24 @@
-// Cargar lista de localStorage al iniciar
 let miLista = JSON.parse(localStorage.getItem('animeList')) || [];
+let tipoActivo = 'ANIME'; // 'ANIME' o 'MANGA'
+
 renderizarMiLista();
 
-// Búsqueda en AniList (GraphQL)
+// Cambiar de pestaña entre Anime y Manga/Manhua
+function cambiarTab(tipo) {
+    tipoActivo = tipo;
+    
+    // Marcar botón activo
+    document.getElementById('tabAnime').classList.toggle('active', tipo === 'ANIME');
+    document.getElementById('tabManga').classList.toggle('active', tipo === 'MANGA');
+
+    // Ocultar la lista de búsqueda
+    document.getElementById('searchResults').classList.add('hidden');
+    
+    // Renderizar los elementos correspondientes
+    renderizarMiLista();
+}
+
+// Búsqueda en AniList según el tipo de la pestaña actual
 async function buscarAnime() {
     const query = `
     query ($search: String, $type: MediaType) {
@@ -19,14 +35,13 @@ async function buscarAnime() {
     }`;
 
     const searchInput = document.getElementById('searchInput').value;
-    const searchType = document.getElementById('searchType').value;
     if (!searchInput) return;
 
     try {
         const response = await fetch('https://graphql.anilist.co', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ query, variables: { search: searchInput, type: searchType } })
+            body: JSON.stringify({ query, variables: { search: searchInput, type: tipoActivo } })
         });
 
         const data = await response.json();
@@ -36,7 +51,6 @@ async function buscarAnime() {
     }
 }
 
-// Dibujar resultados de búsqueda pasando el tipo (ANIME o MANGA)
 function mostrarResultados(medias) {
     const contenedor = document.getElementById('searchResults');
     contenedor.innerHTML = '<h3>Resultados (Haz clic en "+" para agregar)</h3>';
@@ -61,7 +75,6 @@ function mostrarResultados(medias) {
     });
 }
 
-// Guardar en localStorage incluyendo la propiedad 'tipo'
 function agregarAnime(id, titulo, imagen, episodios, tipo) {
     if (!miLista.some(a => a.id === id)) {
         miLista.push({ 
@@ -69,7 +82,7 @@ function agregarAnime(id, titulo, imagen, episodios, tipo) {
             titulo, 
             imagen, 
             episodios, 
-            tipo: tipo || 'ANIME', 
+            tipo: tipo || tipoActivo, 
             estado: 'Pendiente', 
             episodioActual: 0 
         });
@@ -82,43 +95,40 @@ function agregarAnime(id, titulo, imagen, episodios, tipo) {
     }
 }
 
-// Renderizar la lista filtrando por Tipo, Estado y Ordenando A-Z
 function renderizarMiLista() {
     const contenedor = document.getElementById('myList');
     if (!contenedor) return;
     contenedor.innerHTML = '';
     
-    const filtroTipo = document.getElementById('filtroTipo')?.value || 'Todos';
     const filtroEstado = document.getElementById('filtroEstado')?.value || 'Todos';
     const filtroOrden = document.getElementById('filtroOrden')?.value || 'original';
 
-    // 1. Filtrar copia de la lista
+    // 1. Filtrar solo los elementos de la pestaña activa (ANIME o MANGA) y el estado seleccionado
     let listaFiltrada = miLista.filter(anime => {
-        const coincideTipo = (filtroTipo === 'Todos') || ((anime.tipo || 'ANIME') === filtroTipo);
+        const tipoItem = anime.tipo || 'ANIME';
+        const coincideTipo = tipoItem === tipoActivo;
         const coincideEstado = (filtroEstado === 'Todos') || ((anime.estado || 'Pendiente') === filtroEstado);
         return coincideTipo && coincideEstado;
     });
 
-    // 2. Ordenar
+    // 2. Ordenar por A-Z o Z-A
     if (filtroOrden === 'az') {
         listaFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
     } else if (filtroOrden === 'za') {
         listaFiltrada.sort((a, b) => b.titulo.localeCompare(a.titulo));
     }
 
-    // 3. Renderizar elementos filtrados
+    // 3. Dibujar elementos
     listaFiltrada.forEach(anime => {
         const estadoActual = anime.estado || 'Pendiente';
         const episodioActual = anime.episodioActual || 0;
         const totalEpisodios = anime.episodios || '?';
-        const esAnime = (anime.tipo || 'ANIME') === 'ANIME';
-        const etiquetaProgreso = esAnime ? 'Cap' : 'Tom/Cap';
 
         let contadorHTML = '';
         if (estadoActual === 'Viendo') {
             contadorHTML = `
                 <div class="episodio-tracker">
-                    <span>${etiquetaProgreso}:</span>
+                    <span>Cap:</span>
                     <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', -1)">-</button>
                     <input type="number" min="0" max="${anime.episodios || 9999}" value="${episodioActual}" onchange="actualizarEpisodio('${anime.id}', this.value)">
                     <button class="btn-ep" onclick="cambiarEpisodio('${anime.id}', 1)">+</button>
@@ -147,12 +157,16 @@ function renderizarMiLista() {
     });
 }
 
-function actualizarEpisodio(id, cap) {
-    const indice = miLista.findIndex(a => a.id === id);
-    if (indice !== -1) {
-        miLista[indice].episodioActual = parseInt(cap) || 0;
-        localStorage.setItem('animeList', JSON.stringify(miLista));
-    }
+function crearTarjeta(anime, botonHTML) {
+    return `
+        <div class="anime-card">
+            <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" loading="lazy">
+            <div class="anime-info">
+                <div class="anime-title">${anime.title.romaji}</div>
+                ${botonHTML}
+            </div>
+        </div>
+    `;
 }
 
 function cambiarEstado(id, nuevoEstado) {
@@ -164,29 +178,36 @@ function cambiarEstado(id, nuevoEstado) {
     }
 }
 
-// Eliminar de localStorage
+function actualizarEpisodio(id, cap) {
+    const indice = miLista.findIndex(a => a.id === id);
+    if (indice !== -1) {
+        miLista[indice].episodioActual = parseInt(cap) || 0;
+        localStorage.setItem('animeList', JSON.stringify(miLista));
+    }
+}
+
+function cambiarEpisodio(id, incremento) {
+    const indice = miLista.findIndex(a => a.id === id);
+    if (indice !== -1) {
+        let actual = miLista[indice].episodioActual || 0;
+        let nuevo = actual + incremento;
+        
+        if (nuevo < 0) nuevo = 0;
+        const maximo = miLista[indice].episodios;
+        if (maximo && nuevo > maximo) nuevo = maximo;
+        
+        miLista[indice].episodioActual = nuevo;
+        localStorage.setItem('animeList', JSON.stringify(miLista));
+        renderizarMiLista();
+    }
+}
+
 function eliminarAnime(id) {
     miLista = miLista.filter(a => a.id !== id);
     localStorage.setItem('animeList', JSON.stringify(miLista));
     renderizarMiLista();
 }
 
-// Plantilla de la tarjeta HTML. El "alt" muestra el nombre si no hay internet.
-function crearTarjeta(anime, botonHTML) {
-    return `
-        <div class="anime-card">
-            <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" loading="lazy">
-            <div class="anime-info">
-                <div class="anime-title">${anime.title.romaji} <br><small>(${anime.episodes || '?'} eps)</small></div>
-                ${botonHTML}
-            </div>
-        </div>
-    `;
-}
-
-// ================= FUNCIONES DE SINCRONIZACIÓN =================
-
-// Exportar a JSON
 function exportarDatos() {
     const dataStr = JSON.stringify(miLista, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
@@ -198,7 +219,6 @@ function exportarDatos() {
     URL.revokeObjectURL(url);
 }
 
-// Importar de JSON
 function importarDatos(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -216,22 +236,4 @@ function importarDatos(event) {
         }
     };
     reader.readAsText(file);
-}
-
-// Sumar o restar un episodio desde los botones
-function cambiarEpisodio(id, incremento) {
-    const indice = miLista.findIndex(a => a.id === id);
-    if (indice !== -1) {
-        let actual = miLista[indice].episodioActual || 0;
-        let nuevo = actual + incremento;
-        
-        if (nuevo < 0) nuevo = 0; // No bajar de cero
-        
-        const maximo = miLista[indice].episodios;
-        if (maximo && nuevo > maximo) nuevo = maximo; // No pasar del límite si se conoce
-        
-        miLista[indice].episodioActual = nuevo;
-        localStorage.setItem('animeList', JSON.stringify(miLista));
-        renderizarMiLista();
-    }
 }
