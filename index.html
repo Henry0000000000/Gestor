@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Anime PWA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mi Gestor de Anime</h1>
+        <div class="actions">
+            <button onclick="exportarDatos()">Exportar JSON</button>
+            <input type="file" id="importFile" accept=".json" onchange="importarDatos(event)" style="display: none;">
+            <button onclick="document.getElementById('importFile').click()">Importar JSON</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <input type="text" id="searchInput" placeholder="Buscar anime en AniList...">
+            <button onclick="buscarAnime()">Buscar</button>
+        </section>
+
+        <section id="searchResults" class="grid-container hidden"></section>
+
+        <h2>Mi Lista Guardada</h2>
+        <section id="myList" class="grid-container"></section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
